@@ -1,79 +1,169 @@
+#Preinstall before execution of code
+#pip install selenium lxml beautifulsoup4
+
+#Chrome driver path: D:\\Hackathon\\automated-xpath\\chromedriver\\chromedriver.exe
+
+#Demo urls for navigation
+# https://www.google.com/
+# https://opensource-demo.orangehrmlive.com/web/index.php/auth/login
+# https://myaccount.valic.com/auth/public/login
+# https://my.valic.com/GetStarted/Registration/PSORegistration
+
 import streamlit as st
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 import time
-import google.generativeai as genai
 import os
+import google.generativeai as genai
 
-# Initialize session state for driver and DOM file saving if not already done
-if "driver" not in st.session_state:
-    st.session_state.driver = None
-
-if "dom_saved" not in st.session_state:
-    st.session_state.dom_saved = False
-
-if "saved_files" not in st.session_state:
-    st.session_state.saved_files = []
-
-# Set up Google Gemini API
+# Set up Google Gemini API (dummy setup)
 GOOGLE_API_KEY = "AIzaSyBCdIQc2owrOKfv5jmqC3YV3KlY0Y4X63I"
 genai.configure(api_key=GOOGLE_API_KEY)
-model = genai.GenerativeModel('gemini-1.5-flash')
 
-# Button to open the browser
-if st.button("Open Browser"):
+# Function to load Gemini Pro model and get responses (dummy)
+model = genai.GenerativeModel("gemini-1.5-flash")
+chat = model.start_chat(history=[])
+
+# Streamlit session state to maintain WebDriver instance and current URL
+if "driver" not in st.session_state:
+    st.session_state.driver = None
+if "current_url" not in st.session_state:
+    st.session_state.current_url = None
+if "xpaths" not in st.session_state:
+    st.session_state.xpaths = []
+
+# Function to initialize and open the browser
+def open_browser():
     if st.session_state.driver is None:
         chrome_options = Options()
-        chrome_options.add_experimental_option("detach", True)
-        service = Service('D:\\Hackathon\\Automated_Xpath\\chromedriver\\chromedriver.exe')  # Adjust the path
+        chrome_options.add_argument("--disable-gpu")  # Remove headless mode for manual navigation
+        # Set up the Chrome WebDriver service
+        service = Service(executable_path="D:\\Hackathon\\automated-xpath\\chromedriver\\chromedriver.exe")
         st.session_state.driver = webdriver.Chrome(service=service, options=chrome_options)
-        st.success("Browser opened. Navigate to your desired URL.")
+        st.session_state.driver.maximize_window()  # Optional: to open the browser in maximized mode
+        st.write("Browser opened successfully. Please navigate manually.")
     else:
-        st.warning("Browser is already open.")
+        st.write("Browser is already open.")
 
-# Button to save the DOM if the driver is initialized
-if st.session_state.driver:
-    if st.button("Save DOM"):
-        driver = st.session_state.driver
-        html_source = driver.page_source
-        
-        # Save the HTML source to a file
-        page_title = driver.title.replace(" ", "_")
-        filename = f"{page_title}_{time.strftime('%Y%m%d-%H%M%S')}.txt"
-        with open(filename, "w", encoding="utf-8") as file:
-            file.write(html_source)
-        
-        st.success(f"DOM content saved to {filename}")
-        st.session_state.dom_saved = True
-        st.session_state.saved_files.append(filename)
+# Function to get the current URL of the manually navigated page
+def get_url():
+    if st.session_state.driver:
+        st.session_state.current_url = st.session_state.driver.current_url
+        st.write(f"Current URL: {st.session_state.current_url}")
+    else:
+        st.write("Browser is not open. Please open the browser first.")
 
-# Input box for prompt
-prompt = st.text_input("Enter your prompt for Gemini AI:")
+# Function to generate and store XPaths based on current page elements
+def generate_xpath():
+    if st.session_state.driver and st.session_state.current_url:
+        st.session_state.xpaths = st.session_state.driver.execute_script("""
+        function generateXPath(element) {
+            if (element.id !== '') {
+                return '//*[@id="' + element.id + '"]';
+            } else if (element.className && typeof element.className === 'string') {
+                return '//' + element.tagName.toLowerCase() + '[@class="' + element.className.trim() + '"]';
+            } else {
+                var index = Array.from(element.parentNode.children).indexOf(element) + 1;
+                return generateXPath(element.parentNode) + '/' + element.tagName.toLowerCase() + '[' + index + ']';
+            }
+        }
 
-if prompt and st.session_state.saved_files:
-    if st.button("Search for XPath"):
-        # Get the most recent saved file
-        latest_file = st.session_state.saved_files[-1]
+        var targetTags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'a', 'button', 'input', 'label'];
+        var targetInputTypes = ['radio', 'checkbox', 'submit', 'button'];
+        var elements = document.querySelectorAll('*');
+        var results = [];
 
-        # Read the content of the saved file
-        with open(latest_file, "r", encoding="utf-8") as file:
-            content = file.read()
-        
-        # Create the prompt for Gemini AI
-        ai_prompt = f"Extract the relative XPaths for the HTML content:\n\n{content}\n\nPrompt: {prompt}"
+        elements.forEach(function(element) {
+            var tagName = element.tagName.toLowerCase();
+            
+            if (targetTags.includes(tagName)) {
+                if (tagName === 'input') {
+                    var inputType = element.getAttribute('type');
+                    if (!targetInputTypes.includes(inputType)) {
+                        return;
+                    }
+                }
+                var label = element.textContent.trim();
+                if (!label) {
+                    if (tagName === 'a') {
+                        label = element.getAttribute('href');
+                    } else if (tagName === 'input' || tagName === 'button') {
+                        label = element.getAttribute('value');
+                    }
+                }
+                if (label) {
+                    var xpath = generateXPath(element);
+                    results.push({ tagName: tagName, label: label, xpath: xpath });
+                }
+            }
+        });
 
-        # Send the prompt to Gemini AI using the correct method
-        # Adjust method and parameters based on documentation
+        return results;
+        """)
+
+        for result in st.session_state.xpaths:
+            st.write(f"Element: {result['tagName']} ({result['label']})")
+            st.write(f"XPath: {result['xpath']}\n")
+    else:
+        st.write("No URL found. Please get the URL first.")
+
+# Function to save XPaths to a .java file named after the page title
+def save_xpath():
+    if st.session_state.driver and st.session_state.xpaths:
+        page_title = st.session_state.driver.title
+        # Replace non-alphanumeric characters with underscores for compatibility
+        file_name = f"{page_title.replace(' ', '_').replace('.', '_').replace('/', '_')}.java"
+
+        # Format the output content in the desired @FindBy style
+        content = "// XPath Elements using @FindBy annotations\n\n"
+        for result in st.session_state.xpaths:
+            # Replace non-alphanumeric characters in the label for variable names
+            label_safe = ''.join(e if e.isalnum() else '_' for e in result['label'])
+            element_name = f"{result['tagName']}_{label_safe}"
+            
+            content += f"@FindBy(how = How.XPATH, using = \"{result['xpath']}\")\n"
+            content += f"WebElement {element_name};\n\n"
+
+        # Save the content to a file using UTF-8 encoding
         try:
-            response = model.generate(ai_prompt)  # Example method; adjust based on documentation
-            # Extract the XPaths from the response
-            xpaths = response.get('text', '')  # Adjusted access method
-            # Display the XPaths
-            st.text_area("Extracted XPaths:", value=xpaths, height=300)
+            with open(file_name, 'w', encoding='utf-8') as file:
+                file.write(content)
+            st.write(f"XPath elements saved to {file_name}.")
         except Exception as e:
-            st.error(f"An error occurred: {e}")
+            st.write(f"Error saving file: {e}")
+    else:
+        st.write("No XPaths to save. Please generate XPaths first.")
 
-# Display message when browser is closed
-if st.session_state.dom_saved:
-    st.write("Browser closed. You can now provide prompts.")
+# Streamlit UI
+st.set_page_config(page_title="Automated XPath Generator Tool", page_icon="🔍", layout="centered")
+
+# Adding an image at the top of the Streamlit app
+st.image("D:\\Hackathon\\automated-xpath\\cognizant.jpeg", use_column_width=False, width=200)
+
+st.title("Automated XPath Generator Tool")
+st.markdown("**Generate XPaths for web elements for your application.**")
+st.markdown("---")
+
+st.sidebar.title("Navigation")
+st.sidebar.markdown("Use the buttons below to interact with the browser and generate XPaths.")
+
+if st.sidebar.button("Open Browser"):
+    open_browser()
+
+if st.sidebar.button("Get Url"):
+    get_url()
+
+if st.sidebar.button("Generate XPath"):
+    generate_xpath()
+
+if st.sidebar.button("Save XPath"):
+    save_xpath()
+
+# Footer
+st.markdown("---")
+st.markdown("Developed by Corebridge Mariners. Powered by Cognizant Technology Solutions.")
+
+# Ensure the WebDriver instance is not terminated prematurely
+if st.session_state.driver:
+    st.stop()

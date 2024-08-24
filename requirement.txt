@@ -4,3 +4,4 @@ python-dotenv
 pandas
 selenium
 google-auth
+beautifulsoup4
