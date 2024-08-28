@@ -16,6 +16,7 @@ from selenium.webdriver.chrome.options import Options
 import time
 import os
 import google.generativeai as genai
+from streamlit.components.v1 import html
 
 # Set up Google Gemini API (dummy setup)
 GOOGLE_API_KEY = "AIzaSyBCdIQc2owrOKfv5jmqC3YV3KlY0Y4X63I"
@@ -138,11 +139,97 @@ def save_xpath():
 # Streamlit UI
 st.set_page_config(page_title="Automated XPath Generator Tool", page_icon="🔍", layout="centered")
 
+#------------------------------------------------Add custom styling---------------------------------------------------------------
+# Add custom CSS for styling and background
+st.markdown(
+    """
+    <style>
+    /* Gradient background for the main area */
+    .main {
+        background: #CCCCFF;
+        padding: 20px;
+    }
+    
+    /* Styling for the header */
+    .header {
+        text-align: center;
+        color: #ffffff;
+        font-size: 36px;
+        font-weight: bold;
+        text-shadow: 2px 2px 4px #000000;
+        margin-top: 20px;
+    }
+    
+    /* Cognizant logo styling */
+    .logo {
+        display: block;
+        margin: 0 auto;
+        width: 150px;
+        margin-bottom: 20px;
+    }
+    
+    /* Styling for the description */
+    .description {
+        text-align: center;
+        color: #ffffff;
+        font-size: 20px;
+        margin-top: -10px;
+        margin-bottom: 20px;
+    }
+    
+    /* Sidebar styling with texture pattern */
+    [data-testid="stSidebar"] {
+        background-color: #6e84fb; 
+        background-repeat: no-repeat;
+        padding: 20px;
+        box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Button styling */
+    .stButton>button {
+        background-color: #6BB9F0;
+        color: #ffffff;
+        font-size: 16px;
+        padding: 10px 20px;
+        border-radius: 10px;
+        border: none;
+        box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+    }
+
+    /* Button hover effect */
+    .stButton>button:hover {
+        background-color: #59ABE3;
+        box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Footer styling */
+    .footer {
+        text-align: center;
+        color: #ffffff;
+        font-size: 14px;
+        margin-top: 30px;
+    }
+
+    /* Separator line for footer */
+    .separator {
+        width: 80%;
+        height: 1px;
+        background-color: #ffffff;
+        margin: 20px auto;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+#---------------------------------------------------------------------------------------------------------------------------------
+
 # Adding an image at the top of the Streamlit app
 st.image("D:\\Hackathon\\automated-xpath\\cognizant.jpeg", use_column_width=False, width=200)
 
 st.title("Automated XPath Generator Tool")
-st.markdown("**Generate XPaths for web elements for your application.**")
+st.markdown("**Effortlessly generate XPaths for web elements and streamline your development process.**")
 st.markdown("---")
 
 st.sidebar.title("Navigation")
