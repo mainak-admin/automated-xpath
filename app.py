@@ -18,7 +18,7 @@ import os
 import google.generativeai as genai
 from streamlit.components.v1 import html
 
-# Set up Google Gemini API (dummy setup)
+# Set up Google Gemini API
 GOOGLE_API_KEY = "AIzaSyBCdIQc2owrOKfv5jmqC3YV3KlY0Y4X63I"
 genai.configure(api_key=GOOGLE_API_KEY)
 
@@ -139,25 +139,29 @@ def save_xpath():
 # Streamlit UI
 st.set_page_config(page_title="Automated XPath Generator Tool", page_icon="🔍", layout="centered")
 
-#------------------------------------------------Add custom styling---------------------------------------------------------------
 # Add custom CSS for styling and background
 st.markdown(
     """
     <style>
     /* Gradient background for the main area */
     .main {
-        background: #CCCCFF;
+        background: linear-gradient(30deg, rgba(0, 71, 171, 0.6) 0%, rgba(14, 4, 228, 0.1) 49%, rgba(14, 27, 255, 0.6) 100%);
         padding: 20px;
+        color: #000000; /* Change text color to black */
+        border-radius: 10px;
     }
     
     /* Styling for the header */
     .header {
         text-align: center;
-        color: #ffffff;
+        color: #000000;
         font-size: 36px;
         font-weight: bold;
-        text-shadow: 2px 2px 4px #000000;
+        text-shadow: 2px 2px 4px #ffffff;
         margin-top: 20px;
+        background-color: #e0f2ff; /* Light background for header */
+        padding: 10px;
+        border-radius: 5px;
     }
     
     /* Cognizant logo styling */
@@ -171,42 +175,42 @@ st.markdown(
     /* Styling for the description */
     .description {
         text-align: center;
-        color: #ffffff;
+        color: #000000;
         font-size: 20px;
         margin-top: -10px;
         margin-bottom: 20px;
     }
     
-    /* Sidebar styling with texture pattern */
+    /* Sidebar styling with gradient background */
     [data-testid="stSidebar"] {
-        background-color: #6e84fb; 
-        background-repeat: no-repeat;
+        background: linear-gradient(59deg, rgba(204, 204, 255, 1) 0%, rgba(226, 221, 231, 0.6) 30%, rgba(93, 63, 211, 1) 100%);
         padding: 20px;
         box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
     }
 
     /* Button styling */
     .stButton>button {
-        background-color: #6BB9F0;
+        background-color: #1a73e8;
         color: #ffffff;
         font-size: 16px;
         padding: 10px 20px;
-        border-radius: 10px;
+        border-radius: 5px;
         border: none;
         box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
         cursor: pointer;
+        transition: background-color 0.3s ease;
     }
 
     /* Button hover effect */
     .stButton>button:hover {
-        background-color: #59ABE3;
+        background-color: #0c5dbf;
         box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
     }
 
     /* Footer styling */
     .footer {
         text-align: center;
-        color: #ffffff;
+        color: #000000;
         font-size: 14px;
         margin-top: 30px;
     }
@@ -215,15 +219,13 @@ st.markdown(
     .separator {
         width: 80%;
         height: 1px;
-        background-color: #ffffff;
+        background-color: #000000;
         margin: 20px auto;
     }
     </style>
     """,
     unsafe_allow_html=True
 )
-
-#---------------------------------------------------------------------------------------------------------------------------------
 
 # Adding an image at the top of the Streamlit app
 st.image("D:\\Hackathon\\automated-xpath\\cognizant.jpeg", use_column_width=False, width=200)
